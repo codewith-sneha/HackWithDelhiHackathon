@@ -33,7 +33,7 @@ An AI-powered learning platform where students can ask questions about lecture c
 ## Project Structure
 
 ```
-AHGV_Hackathon/
+learningPlatform/
 ├── client/                  # React frontend
 │   ├── src/
 │   │   ├── pages/
@@ -73,8 +73,8 @@ AHGV_Hackathon/
 
 ~~~bash
 # Clone the repo
-git clone https://github.com/codewith-sneha/AHGV_Hackathon.git
-cd AHGV_Hackathon/client
+git clone https://github.com/codewith-sneha/HackWithDelhiHackathon.git
+cd learningPlatform/client
 
 # Install dependencies
 npm install
