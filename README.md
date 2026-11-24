@@ -1,4 +1,4 @@
-# BuildVerse AI Learning Assistant
+#  AI Learning Assistant
 
 An AI-powered learning platform where students can ask questions about lecture content they've already watched. The AI answers **only from content consumed so far** — enforcing a Timestamp Guard that prevents spoilers and ensures grounded, citation-backed responses.
 
@@ -176,7 +176,7 @@ See [API.md](./API.md) for full endpoint documentation.
 
 ---
 
-## Team — Syntax Squad
+## Team 
 
 | Name | Role |
 |---|---|
@@ -186,6 +186,3 @@ See [API.md](./API.md) for full endpoint documentation.
 
 ---
 
-## Hackathon
-
-AHGV BuildVerse Hackathon 2026
