@@ -26,3 +26,10 @@ agent/seed_test.py
 agent/.py
 agent/list_groq.py
 agent/inspect_qdrant.py
+
+.venv/
+.venv312/
+venv/
+__pycache__/
+*.pyc
+.env
