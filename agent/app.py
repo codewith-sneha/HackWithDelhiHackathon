@@ -70,7 +70,10 @@ class GroqLLM:
         self._client = None
         self._lock = threading.Lock()
 
-    def __call__(self, system: str, prompt: str, json_mode: bool = False, max_tokens: int = 700) -> str:
+    def __call__(self, system: str, prompt: str, json_mode: bool = False, max_tokens: int = 700,
+                 hide_reasoning: bool = False) -> str:
+        # hide_reasoning is opt-in and used only by the quiz endpoints. Chat/RAG never pass it,
+        # so their request payload is byte-for-byte what it was before.
         with self._lock:
             if self._client is None:
                 from groq import Groq
@@ -90,8 +93,16 @@ class GroqLLM:
         if "gpt-oss" in self.model:
             kwargs["reasoning_effort"] = "low"
             kwargs["max_tokens"] = max_tokens + 1000
+            if hide_reasoning:
+                # Groq defaults reasoning_format to "raw" outside JSON mode, which puts the model's
+                # analysis prose straight into message.content. "hidden" drops it from the reply
+                # entirely. Only "raw" is rejected when JSON mode is on, so this is safe either way.
+                kwargs["reasoning_format"] = "hidden"
         resp = self._client.chat.completions.create(**kwargs)
-        return resp.choices[0].message.content or ""
+        choice = resp.choices[0]
+        if getattr(choice, "finish_reason", None) == "length":
+            log.warning("LLM reply truncated by max_tokens (%s)", kwargs.get("max_tokens"))
+        return choice.message.content or ""
 
 
 class FallbackLLM:
@@ -100,13 +111,16 @@ class FallbackLLM:
     def __init__(self, primary: Callable[..., str], secondary: Callable[..., str]):
         self.primary, self.secondary = primary, secondary
 
-    def __call__(self, system: str, prompt: str, json_mode: bool = False, max_tokens: int = 700) -> str:
+    def __call__(self, system: str, prompt: str, json_mode: bool = False, max_tokens: int = 700,
+                 hide_reasoning: bool = False) -> str:
         try:
-            return self.primary(system, prompt, json_mode=json_mode, max_tokens=max_tokens)
+            return self.primary(system, prompt, json_mode=json_mode, max_tokens=max_tokens,
+                                hide_reasoning=hide_reasoning)
         except Exception as e:
             log.warning("Gemini unavailable, falling back to Groq: %s", e)
             try:
-                return self.secondary(system, prompt, json_mode=json_mode, max_tokens=max_tokens)
+                return self.secondary(system, prompt, json_mode=json_mode, max_tokens=max_tokens,
+                                      hide_reasoning=hide_reasoning)
             except Exception as e2:  # noqa: BLE001
                 log.exception("Groq fallback failed")
                 raise LLMUnavailable(f"Gemini and Groq both failed: {e2}") from e2
@@ -449,7 +463,11 @@ class Gemini:
         )
         return resp.text or ""
 
-    def __call__(self, system: str, prompt: str, json_mode: bool = False, max_tokens: int = 700) -> str:
+    def __call__(self, system: str, prompt: str, json_mode: bool = False, max_tokens: int = 700,
+                 hide_reasoning: bool = False) -> str:
+        # Gemini has no reasoning_format parameter: thought parts are already returned outside
+        # `resp.text`. The hint is accepted so quiz callers can pass it uniformly, then ignored.
+        del hide_reasoning
         with self._lock:
             if self._client is None:
                 from google import genai
