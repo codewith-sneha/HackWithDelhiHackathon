@@ -10,6 +10,7 @@ sys.path.append(project_root)
 from app.services.qdrant_service import init_qdrant_collection
 
 from agent.app import router as agent_router
+from agent.quiz import router as quiz_router
 from app.routes.interview import router as interview_router
 
 app = FastAPI(title="AHGV Learning Assistant API", version="1.0.0")
@@ -32,6 +33,7 @@ def startup_event():
 
 
 app.include_router(agent_router, prefix="/api", tags=["Agentic RAG"])
+app.include_router(quiz_router, prefix="/api", tags=["Quiz"])
 app.include_router(interview_router, prefix="/api")
 
 @app.get("/health")

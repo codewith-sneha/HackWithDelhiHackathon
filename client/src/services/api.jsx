@@ -63,7 +63,7 @@ export const interviewFinish = async (payload) => {
   return res.json();
 };
 const QUIZ_BASE = import.meta.env.VITE_AGENT_URL || API_BASE;
-const QUIZ_PATH = "/quiz";
+const QUIZ_PATH = "/api/quiz";
 const readError = async (res, fallback) => {
   try {
     const d = await res.json();
